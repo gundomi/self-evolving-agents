@@ -1,0 +1,33 @@
+{
+  "skills": [
+    {
+      "name": "list_all_skills",
+      "description": "View the list of all available skills and tools in the current system",
+      "file_name": "system_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "generate_random_password",
+      "description": "Generate a random password of a specified length, containing uppercase and lowercase letters, numbers, and special characters.",
+      "file_name": "skills/generated/password_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "integer",
+            "description": "The desired length of the password. Must be a positive integer, at least 8 for security.",
+            "minimum": 8,
+            "maximum": 128
+          }
+        },
+        "required": [
+          "length"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+model:
+  provider: "google" # options: "google", "openai", "deepseek"
+  name: "gemini-2.0-flash"
+  base_url: "" # Optional for OpenAI/DeepSeek
+  api_key: "YOUR_API_KEY_HERE"
+
+paths:
+  skills_dir: "skills"
+  generated_skills_dir: "skills/generated"
+  checkpoint_db: "storage/checkpointer.db"
