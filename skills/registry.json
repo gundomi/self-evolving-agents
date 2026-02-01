@@ -28,6 +28,106 @@
           "length"
         ]
       }
+    },
+    {
+      "name": "get_current_weather",
+      "description": "Fetch current weather data for a specified location using OpenWeatherMap API",
+      "file_name": "skills/generated/weather_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name and optional country code (e.g., 'London,UK' or 'New York,US')"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "OpenWeatherMap API key (get from https://openweathermap.org/api)"
+          },
+          "units": {
+            "type": "string",
+            "description": "Temperature units: 'metric' (Celsius), 'imperial' (Fahrenheit), or 'standard' (Kelvin)",
+            "enum": [
+              "metric",
+              "imperial",
+              "standard"
+            ],
+            "default": "metric"
+          }
+        },
+        "required": [
+          "location",
+          "api_key"
+        ]
+      }
+    },
+    {
+      "name": "get_current_datetime",
+      "description": "Fetch current date and time with optional timezone support",
+      "file_name": "skills/generated/datetime_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "description": "Optional timezone name (e.g., 'UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo'). Uses local system time if not provided.",
+            "enum": [
+              "UTC",
+              "America/New_York",
+              "America/Los_Angeles",
+              "Europe/London",
+              "Europe/Paris",
+              "Asia/Tokyo",
+              "Asia/Shanghai",
+              "Australia/Sydney",
+              "Africa/Cairo",
+              "Pacific/Auckland"
+            ]
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "get_system_monitoring_data",
+      "description": "获取当前电脑上正在运行或最近使用的应用程序列表、CPU/内存占用情况、使用时长等系统监控数据",
+      "file_name": "skills/generated/system_monitoring_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "include_processes": {
+            "type": "boolean",
+            "description": "是否包含进程信息",
+            "default": true
+          },
+          "include_system_stats": {
+            "type": "boolean",
+            "description": "是否包含系统统计信息（CPU、内存、磁盘）",
+            "default": true
+          },
+          "include_recent_apps": {
+            "type": "boolean",
+            "description": "是否包含最近使用的应用程序",
+            "default": true
+          },
+          "process_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "进程数量限制，null表示无限制",
+            "default": 20
+          },
+          "recent_hours": {
+            "type": "integer",
+            "description": "最近使用应用程序的时间范围（小时）",
+            "default": 24,
+            "minimum": 1,
+            "maximum": 168
+          }
+        },
+        "required": []
+      }
     }
   ]
 }

@@ -5,6 +5,7 @@ A modular, self-evolving agent framework built with LangGraph. This system is de
 ## 🚀 Key Features
 
 - **Self-Evolution Loop**: Automatically generates new tools when existing skills are insufficient.
+- **Modern Web Interface**: A sleek, dark-mode chat UI with glassmorphism and real-time feedback.
 - **Dynamic Hot-Reloading**: New tools are injected into the running process without requiring a restart.
 - **Multi-Provider Support**: Compatible with Google Gemini, OpenAI, and DeepSeek.
 - **Strict Schema Enforcement**: Uses Pydantic and JSON Schema to ensure generated tools are compatible with the routing system.
@@ -32,6 +33,7 @@ graph TD
 2.  **Creator**: The "Brain" that writes Python code and generates OpenAI-compatible function schemas.
 3.  **Updater**: The "Hand" that persists code to the filesystem and performs dynamic module loading (Hot-Reload).
 4.  **Executor**: Runs the confirmed tools to provide the final result.
+5.  **FastAPI Server**: Serves the web interface and handles API requests.
 
 ## 📁 Project Structure
 
@@ -39,6 +41,7 @@ graph TD
 .
 ├── agents/             # System prompts for different nodes
 ├── core/               # Framework logic (State, Engine, Logic Nodes)
+├── frontend/           # Web interface assets (HTML, CSS, JS)
 ├── runtime/            # Sandbox and execution environments
 ├── skills/             # Skills management
 │   ├── generated/      # Directory where the LLM saves new tools
@@ -46,7 +49,8 @@ graph TD
 │   └── registry.json   # Metadata for all available skills
 ├── config.yaml         # Active configuration (ignored by git)
 ├── config.example.yaml # Configuration template
-└── main.py             # Entry point
+├── main.py             # CLI entry point
+└── server.py           # Web API entry point
 ```
 
 ## 🛠 Getting Started
@@ -68,15 +72,20 @@ cp config.example.yaml config.yaml
 Edit `config.yaml`:
 ```yaml
 model:
-  provider: "google" # or "openai", "deepseek"
-  name: "gemini-2.0-flash"
+  provider: "deepseek" # or "google", "openai"
+  name: "deepseek-chat"
   api_key: "your-api-key"
 ```
 
-### 3. Usage
+### 3. Running the System
 
-Run the main process:
+#### Option A: Web Interface (Recommended)
+```bash
+python server.py
+```
+Then open `http://localhost:8000` in your browser.
 
+#### Option B: Command Line
 ```bash
 python main.py
 ```

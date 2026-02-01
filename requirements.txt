@@ -6,3 +6,6 @@ langgraph
 pydantic
 python-dotenv
 PyYAML
+fastapi
+uvicorn
+python-multipart

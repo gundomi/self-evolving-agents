@@ -4,14 +4,48 @@ from core.state import AgentState
 from core.router import router_node
 from core.creator import creator_node
 from core.updater import updater_node
+from skills.manager import SkillManager
+import os
 
-# --- Simulated Execution Node (Executor) ---
-# In a real project, this would use Python REPL or tool_call to actually run the function
+# --- Real Execution Node (Executor) ---
 def executor_node(state: AgentState) -> AgentState:
-    print(f"\n--- [Executor] Executing Skill... ---")
-    # Simplified handling here: assume Router has confirmed the tool exists, just print it
-    # Real scenario: find the function in sys.modules based on target_skill and run it
-    return {"final_result": "Task executed successfully! (Simulated: called the newly generated tool)"}
+    skill_name = state.get("target_skill")
+    args = state.get("skill_args") or {}
+    
+    print(f"\n--- [Executor] Executing Skill: {skill_name} with args: {args} ---")
+    
+    try:
+        manager = SkillManager()
+        skills = manager.load_registry()
+        skill_metadata = next((s for s in skills if s["name"] == skill_name), None)
+        
+        if not skill_metadata:
+            return {"final_result": f"Error: Skill '{skill_name}' not found in registry."}
+            
+        file_path = skill_metadata["file_name"]
+        
+        # Dynamically load the module
+        from core.updater import load_dynamic_module
+        module_name = f"skills.generated.{os.path.basename(file_path).replace('.py', '')}"
+        module = load_dynamic_module(file_path, module_name)
+        
+        # Get the function
+        func = getattr(module, skill_name)
+        
+        # Call the function
+        result = func(**args)
+        
+        print(f"--- [Executor] Result: {result} ---")
+        
+        # Format result for user
+        if isinstance(result, dict) and 'error' in result:
+            return {"final_result": f"Tool Execution Error: {result['error']}"}
+            
+        return {"final_result": str(result)}
+        
+    except Exception as e:
+        print(f"--- [Executor] Execution Failed: {str(e)} ---")
+        return {"final_result": f"Execution Error: {str(e)}"}
 
 # --- Build the Graph (Graph Construction) ---
 

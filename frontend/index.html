@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Evolving Agent | Interface</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="blob"></div>
+    <div class="blob blob-2"></div>
+    
+    <main class="chat-container">
+        <header class="chat-header">
+            <div class="brand">
+                <div class="logo-orb"></div>
+                <h1>Self-Evolving <span>Agent</span></h1>
+            </div>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span class="status-text">Ready</span>
+            </div>
+        </header>
+
+        <section class="messages" id="chat-messages">
+            <div class="message system">
+                <div class="avatar">🤖</div>
+                <div class="content">
+                    <p>Hello! I am an agent capable of learning new skills. What can I help you with today?</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="chat-input-area">
+            <div class="input-wrapper">
+                <textarea id="user-input" placeholder="Type your request here..." rows="1"></textarea>
+                <button id="send-btn" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="disclaimer">Self-Evolving Agent Framework v1.0 • Built with LangGraph</p>
+        </footer>
+    </main>
+
+    <div class="debug-panel" id="debug-panel">
+        <h3>Agent Reasoning</h3>
+        <div class="log-container" id="log-container">
+            <p class="muted">Awaiting activity...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

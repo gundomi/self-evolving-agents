@@ -42,9 +42,9 @@ def router_node(state: AgentState) -> AgentState:
     
     if action == "execute":
         updates["route_action"] = "execute"
-        # Here we assume the executor needs to know which function to call, currently stored in the route_action context,
-        # or you can pass parameters to the executor. For simplicity, we temporarily only mark the action.
-        # During actual execution, the Executor will analyze the parameters again.
+        updates["target_skill"] = decision.get("target_skill")
+        updates["skill_args"] = decision.get("target_skill_args", {})
+        print(f"--- [Router] Target Skill: {updates['target_skill']} with args: {updates['skill_args']} ---")
         
     elif action == "create":
         updates["route_action"] = "create"
@@ -56,10 +56,14 @@ def router_node(state: AgentState) -> AgentState:
             "file_path": "",
             "error_message": None
         }
+        updates["target_skill"] = None
+        updates["skill_args"] = None
         
     elif action == "reply":
         updates["route_action"] = "reply"
         updates["final_result"] = decision.get("reply_content", "I understand.")
+        updates["target_skill"] = None
+        updates["skill_args"] = None
     
     # Note: LangGraph's State update uses merge logic; only return changed fields.
     return updates

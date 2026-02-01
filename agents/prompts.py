@@ -18,6 +18,7 @@ Please return strictly in the following JSON format:
 {{
     "action": "execute" | "create" | "reply", 
     "target_skill": "skill_name_if_execute", 
+    "target_skill_args": {{ "arg_name": "value" }},
     "missing_skill_desc": "description_if_create",
     "reply_content": "text_if_reply"
 }}
@@ -36,6 +37,7 @@ Skills: [{{"name": "get_stock_price", "description": "Fetch stock prices"}}]
 Output: {{
     "action": "execute",
     "target_skill": "get_stock_price",
+    "target_skill_args": {{"symbol": "GOOGL"}},
     "missing_skill_desc": null
 }}
 """

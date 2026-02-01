@@ -35,6 +35,10 @@ class AgentState(TypedDict):
     # 'create': No tool, need to generate
     route_action: str
     
+    # New: Target skill and arguments for execution
+    target_skill: Optional[str]
+    skill_args: Optional[Dict[str, Any]]
+    
     # 5. Skill generation sub-state (if route_action == 'create')
     skill_gen_data: Optional[SkillGenerationData]
     
