@@ -60,8 +60,9 @@ Please return a JSON object containing the following fields:
 
 ### Code Constraints:
 - Use only the Python standard library or most common libraries (requests, json, datetime, etc.).
+- **Shell Support**: You are allowed to use `subprocess` or `os.system` ONLY if the task requires a system-level tool (e.g., git, docker, ffmpeg) that does not have a lightweight Python library alternative. 
+- Ensure code security: avoid arbitrary shell execution from user input; sanitize all parameters.
 - Do not use `input()` or `print()` for interaction; the function must return the result via a return statement.
-- Ensure code security; prohibit execution of system commands (e.g., os.system, subprocess).
 
 ### Example Output Format:
 {{
@@ -85,11 +86,14 @@ You are the [Mission Supervisor].
 Your task is to classify the user's intent into one of three categories:
 
 1. **reply**: The user is just chatting, asking a simple question, or providing feedback. No tools are needed.
-2. **execute_single**: The user's request can be resolved by a single existing tool or a simple command.
+2. **execute_single**: The user's request can be resolved by a single existing tool or a simple command (including shell commands).
 3. **complex_mission**: The user's request is complex, multi-step, or requires strategic planning (DAG decomposition).
 
 ### Available Skills:
 {skills_summary}
+
+### CLI Strategy:
+If a user asks for a system-level operation (e.g., "show git log", "check disk space"), and `run_shell_command` is available, prefer using it for `execute_single` or `execute` nodes.
 
 ### Output Format (JSON):
 {{

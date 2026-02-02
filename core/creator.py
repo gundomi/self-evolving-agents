@@ -46,7 +46,8 @@ def creator_node(state: AgentState) -> AgentState:
                 "file_name": generated_data["file_name"],
                 "generated_code": generated_data["code"],
                 "parameters": generated_data["parameters"],
-                "error_message": None
+                "error_message": None,
+                "node_id": state["skill_gen_data"].get("node_id")
             }
         }
 

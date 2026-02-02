@@ -53,13 +53,27 @@ def orchestrator_node(state: AgentState) -> AgentState:
     selected_node = executable_nodes[0]
     print(f"--- [Orchestrator] Next Task: {selected_node.id} ({selected_node.task}) ---")
     
-    return {
+    updates = {
         "route_action": selected_node.action_type,
         "target_skill": selected_node.target_skill,
         "skill_args": selected_node.target_skill_args,
         "current_node_id": selected_node.id,
         "state_gate": selected_node.state_gate
     }
+
+    # v3 tool evolution support: Initialize generation data if action is 'create'
+    if selected_node.action_type == "create":
+        updates["skill_gen_data"] = {
+            "skill_name": "", 
+            "skill_description": selected_node.task,
+            "file_name": "",
+            "generated_code": "",
+            "parameters": {},
+            "error_message": None,
+            "node_id": selected_node.id
+        }
+    
+    return updates
 
 def state_gate_validator(result: Any, gate_expression: Optional[str]) -> bool:
     """

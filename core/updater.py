@@ -61,8 +61,13 @@ def updater_node(state: AgentState) -> AgentState:
         print(f"--- [Updater] Hot Reload Failed: {e} ---")
         return {"final_result": f"Newly generated code cannot be loaded: {str(e)}"}
 
-    # v3 Closed loop: Return to orchestrator
-    return {
+    # v3 Closed loop: Return to orchestrator and mark node as completed
+    node_id = gen_data.get("node_id")
+    updates = {
         "skill_gen_data": None, 
         "route_action": "orchestrate" 
     }
+    if node_id:
+        updates["completed_nodes"] = [node_id]
+        
+    return updates

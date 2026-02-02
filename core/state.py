@@ -13,6 +13,7 @@ class SkillGenerationData(TypedDict):
     generated_code: str       
     parameters: Dict[str, Any] # Added: Parameter Schema, must be passed to Updater
     error_message: Optional[str]
+    node_id: Optional[str]     # v3: Track which node triggered this generation
 
 
 
