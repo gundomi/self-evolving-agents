@@ -9,6 +9,9 @@ Your mission is to analyze complex goals and decompose them into a Directed Acyc
 2. **DEPEND**: Define dependencies between tasks. Independent tasks will run in parallel.
 3. **VALIDATE**: Define 'state_gate' conditions for each task (e.g., "result > 0.9" or "id_found == True").
 
+### System Context:
+{system_context}
+
 ### Available Skills:
 {skills_summary}
 
@@ -89,6 +92,12 @@ Your task is to classify the user's intent into one of three categories:
 2. **execute_single**: The user's request can be resolved by a single existing tool or a simple command (including shell commands).
 3. **complex_mission**: The user's request is complex, multi-step, or requires strategic planning (DAG decomposition).
 
+### System Context:
+{system_context}
+
+### Retrieved History:
+{retrieved_context}
+
 ### Available Skills:
 {skills_summary}
 
@@ -102,5 +111,57 @@ If a user asks for a system-level operation (e.g., "show git log", "check disk s
     "direct_reply": "Content if intent is 'reply'",
     "target_skill": "skill_name_if_execute_single",
     "target_skill_args": {{ "key": "value" }}
+}}
+"""
+
+FIXER_SYSTEM_PROMPT = """
+You are the [Sentinel-Architect v3 System Fixer].
+Your task is to analyze execution errors and propose a mitigation strategy.
+
+### Context:
+- **User Task**: {user_task}
+- **Failed Node**: {node_id}
+- **Error**: {error_message}
+- **Full Node Output**: {node_output}
+
+### Available Skills:
+{skills_summary}
+
+### Mitigation Strategies:
+1. **RETRAIN**: If the error is a parameter mismatch or small code bug, propose a fix for the next evolution cycle.
+2. **REROUTE**: If the current path is blocked (e.g., Permission Denied), propose an alternative tool or directory.
+3. **ABORT**: If the error is fatal and no workaround exists.
+
+### Output Format (JSON):
+{{
+    "analysis": "Brief explanation of what went wrong",
+    "strategy": "retrain" | "reroute" | "abort",
+    "new_plan": "Specific instructions or a new DAG node definition if strategy is reroute"
+}}
+"""
+SKILL_FIXER_PROMPT = """
+You are a Python Code Repair Expert.
+Your task is to fix a broken tool based on the runtime error it produced.
+
+### Input Context:
+- **Skill Name**: {skill_name}
+- **Current Code**:
+{current_code}
+- **Runtime Error**: {error_message}
+
+### Task:
+Rewrite the function to fix the error. 
+- Keep the same function name.
+- Fix bugs, handle edge cases, or add missing parameters.
+- Ensure the code is robust.
+
+### Output Requirements (must be strict JSON format):
+Please return a JSON object compatible with the Skill Creator output:
+{{
+  "name": "{skill_name}",
+  "description": "Updated description if needed",
+  "file_name": "{file_name}",
+  "code": "def {skill_name}(...):\n    ... fixed code ...",
+  "parameters": {{ ... updated schema ... }}
 }}
 """

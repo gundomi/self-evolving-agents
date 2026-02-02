@@ -6,6 +6,8 @@ from core.engine import get_llm
 from skills.manager import SkillManager
 from agents.prompts import ROUTER_SYSTEM_PROMPT, SUPERVISOR_SYSTEM_PROMPT
 from core.definitions import OrchestrationDAG
+from core.system_info import get_system_context
+from core.memory import VectorMemory
 
 def supervisor_node(state: AgentState) -> AgentState:
     """
@@ -17,7 +19,20 @@ def supervisor_node(state: AgentState) -> AgentState:
     skills_summary = skill_manager.get_skill_summaries()
     skills_text = json.dumps(skills_summary, ensure_ascii=False, indent=2)
     
-    system_msg = SystemMessage(content=SUPERVISOR_SYSTEM_PROMPT.format(skills_summary=skills_text))
+    # Get System Context for grounding
+    sys_ctx = get_system_context()
+    sys_str = json.dumps(sys_ctx, indent=2)
+
+    # Get RAG Context
+    vector_memory = VectorMemory()
+    retrieved = vector_memory.retrieve_relevant(state['user_task'])
+    rag_str = json.dumps(retrieved, indent=2) if retrieved else "No relevant history found."
+
+    system_msg = SystemMessage(content=SUPERVISOR_SYSTEM_PROMPT.format(
+        skills_summary=skills_text,
+        system_context=sys_str,
+        retrieved_context=rag_str
+    ))
     human_msg = HumanMessage(content=state['user_task'])
     
     llm = get_llm()
@@ -60,7 +75,20 @@ def router_node(state: AgentState) -> AgentState:
     skills_summary = skill_manager.get_skill_summaries()
     skills_text = json.dumps(skills_summary, ensure_ascii=False, indent=2)
     
-    system_msg = SystemMessage(content=ROUTER_SYSTEM_PROMPT.format(skills_summary=skills_text))
+    # Get System Context
+    sys_ctx = get_system_context()
+    sys_str = json.dumps(sys_ctx, indent=2)
+    
+    # Get RAG Context
+    vector_memory = VectorMemory()
+    retrieved = vector_memory.retrieve_relevant(state['user_task'])
+    rag_str = json.dumps(retrieved, indent=2) if retrieved else "No relevant history found."
+
+    system_msg = SystemMessage(content=ROUTER_SYSTEM_PROMPT.format(
+        skills_summary=skills_text,
+        system_context=sys_str,
+        retrieved_context=rag_str
+    ))
     human_msg = HumanMessage(content=state['user_task'])
     
     llm = get_llm()

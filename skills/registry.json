@@ -11,23 +11,6 @@
       }
     },
     {
-      "name": "run_shell_command",
-      "description": "Execute a shell command and return its output (stdout and stderr). Use for git, ls, or system-level tasks.",
-      "file_name": "system_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "command": {
-            "type": "string",
-            "description": "The exact shell command to execute."
-          }
-        },
-        "required": [
-          "command"
-        ]
-      }
-    },
-    {
       "name": "generate_random_password",
       "description": "Generate a random password of a specified length, containing uppercase and lowercase letters, numbers, and special characters.",
       "file_name": "skills/generated/password_tools.py",
@@ -43,38 +26,6 @@
         },
         "required": [
           "length"
-        ]
-      }
-    },
-    {
-      "name": "get_current_weather",
-      "description": "Fetch current weather data for a specified location using OpenWeatherMap API",
-      "file_name": "skills/generated/weather_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "City name and optional country code (e.g., 'London,UK' or 'New York,US')"
-          },
-          "api_key": {
-            "type": "string",
-            "description": "OpenWeatherMap API key (get from https://openweathermap.org/api)"
-          },
-          "units": {
-            "type": "string",
-            "description": "Temperature units: 'metric' (Celsius), 'imperial' (Fahrenheit), or 'standard' (Kelvin)",
-            "enum": [
-              "metric",
-              "imperial",
-              "standard"
-            ],
-            "default": "metric"
-          }
-        },
-        "required": [
-          "location",
-          "api_key"
         ]
       }
     },
@@ -223,6 +174,54 @@
           }
         },
         "required": []
+      }
+    },
+    {
+      "name": "get_current_weather",
+      "description": "Fetch current weather data for a specified location using OpenWeatherMap API. Now supports optional API key parameter with environment variable fallback.",
+      "file_name": "skills/generated/weather_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name and optional country code (e.g., 'London,UK' or 'New York')"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "OpenWeatherMap API key (optional, defaults to OPENWEATHER_API_KEY environment variable)"
+          },
+          "units": {
+            "type": "string",
+            "description": "Temperature units - 'metric' (Celsius), 'imperial' (Fahrenheit), or 'standard' (Kelvin)",
+            "default": "metric"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    },
+    {
+      "name": "run_shell_command",
+      "description": "Execute a shell command and return its output (stdout and stderr). Use this for system operations like git, ls, or checking service status. Automatically handles sudo privileges when password is available.",
+      "file_name": "skills/generated/system_tools.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The shell command to execute"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Maximum execution time in seconds (default: 30)",
+            "default": 30
+          }
+        },
+        "required": [
+          "command"
+        ]
       }
     }
   ]

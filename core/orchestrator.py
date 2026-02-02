@@ -17,7 +17,7 @@ def orchestrator_node(state: AgentState) -> AgentState:
     if "single_task_node" in completed:
         return {"route_action": "reply"}
     if "single_task_node" in failed:
-        return {"route_action": "reply"}
+        return {"route_action": "repair"}
 
     if not dag:
         # If no DAG but we reached here, it might be an issue with graph transitions
@@ -33,11 +33,10 @@ def orchestrator_node(state: AgentState) -> AgentState:
         
         # Check if all dependencies are in the 'completed' list
         if all(dep in completed for dep in node.dependencies):
-            # Also check if any dependency failed. If a dependency failed, this node should probably fail too or be skipped
+            # If a dependency failed, we go to repair instead of immediate deadlock
             if any(dep in failed for dep in node.dependencies):
-                 print(f"--- [Orchestrator] Skipping {node.id} because dependency failed ---")
-                 # We'll mark it as failed (cascading failure)
-                 return {"failed_nodes": [node.id]}
+                 print(f"--- [Orchestrator] Dependency failed for {node.id}. Triggering repair... ---")
+                 return {"route_action": "repair"}
             
             executable_nodes.append(node)
     
