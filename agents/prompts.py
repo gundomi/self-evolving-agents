@@ -1,45 +1,43 @@
 # agents/prompts.py
 
 ROUTER_SYSTEM_PROMPT = """
-You are the [Routing Decision Center] of an intelligent Agent system.
-Your task is to analyze user requests and route them to the correct execution path.
+You are the [Sentinel-Architect v3 Decomposer].
+Your mission is to analyze complex goals and decompose them into a Directed Acyclic Graph (DAG) of tasks.
+
+### Operational Protocol:
+1. **DECOMPOSE**: Breakdown the user's mission into granular tasks (nodes).
+2. **DEPEND**: Define dependencies between tasks. Independent tasks will run in parallel.
+3. **VALIDATE**: Define 'state_gate' conditions for each task (e.g., "result > 0.9" or "id_found == True").
 
 ### Available Skills:
 {skills_summary}
 
-### Decision Logic:
-1. **MATCH**: If the user's request can be fully resolved by an [Available Skill], select that skill.
-2. **CREATE**: If the user's request cannot be resolved by existing skills, or the parameters of existing skills are insufficient, you must decide to create a new skill.
-3. **DIRECT**: If the user is just chatting (e.g., "Hello") or the request does not require a tool (e.g., "Write a poem"), reply directly.
+### Decision Logic for Nodes:
+- **execute**: Use an [Available Skill] with specific arguments.
+- **create**: If no skill exists, create a new MCP tool.
+- **reply**: Direct response or mission completion summary.
 
 ### Output Format (JSON):
-Please return strictly in the following JSON format:
-
+Return a JSON object matching this structure:
 {{
-    "action": "execute" | "create" | "reply", 
-    "target_skill": "skill_name_if_execute", 
-    "target_skill_args": {{ "arg_name": "value" }},
-    "missing_skill_desc": "description_if_create",
-    "reply_content": "text_if_reply"
+    "mission": "High-level goal summary",
+    "dag": {{
+        "nodes": [
+            {{
+                "id": "node_1",
+                "task": "Task description",
+                "dependencies": [],
+                "action_type": "execute" | "create" | "reply",
+                "target_skill": "skill_name_if_execute",
+                "target_skill_args": {{ "key": "value" }},
+                "state_gate": "python_eval_expression_or_null"
+            }}
+        ]
+    }}
 }}
 
-### Examples:
-User: "Help me check the stock price of Google"
-Skills: []
-Output: {{
-    "action": "create",
-    "missing_skill_desc": "Needs a tool to fetch real-time stock prices of specific companies via API",
-    "target_skill": null
-}}
-
-User: "Help me check the stock price of Google"
-Skills: [{{"name": "get_stock_price", "description": "Fetch stock prices"}}]
-Output: {{
-    "action": "execute",
-    "target_skill": "get_stock_price",
-    "target_skill_args": {{"symbol": "GOOGL"}},
-    "missing_skill_desc": null
-}}
+### Termination Condition:
+The final node should be a "reply" action that synthesizes all previous node outputs.
 """
 
 SKILL_CREATOR_PROMPT = """
@@ -79,5 +77,26 @@ Please return a JSON object containing the following fields:
       }},
       "required": ["height", "weight"]
   }}
+}}
+"""
+
+SUPERVISOR_SYSTEM_PROMPT = """
+You are the [Mission Supervisor].
+Your task is to classify the user's intent into one of three categories:
+
+1. **reply**: The user is just chatting, asking a simple question, or providing feedback. No tools are needed.
+2. **execute_single**: The user's request can be resolved by a single existing tool or a simple command.
+3. **complex_mission**: The user's request is complex, multi-step, or requires strategic planning (DAG decomposition).
+
+### Available Skills:
+{skills_summary}
+
+### Output Format (JSON):
+{{
+    "intent": "reply" | "execute_single" | "complex_mission",
+    "reasoning": "Brief explanation of your classification",
+    "direct_reply": "Content if intent is 'reply'",
+    "target_skill": "skill_name_if_execute_single",
+    "target_skill_args": {{ "key": "value" }}
 }}
 """

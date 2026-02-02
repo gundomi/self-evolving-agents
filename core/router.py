@@ -4,66 +4,90 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from core.state import AgentState
 from core.engine import get_llm
 from skills.manager import SkillManager
-from agents.prompts import ROUTER_SYSTEM_PROMPT
+from agents.prompts import ROUTER_SYSTEM_PROMPT, SUPERVISOR_SYSTEM_PROMPT
+from core.definitions import OrchestrationDAG
 
-def router_node(state: AgentState) -> AgentState:
+def supervisor_node(state: AgentState) -> AgentState:
     """
-    Router node: Decides whether to execute an existing tool or generate a new one.
+    Supervisor node: Classifies intent into reply, single tool, or complex mission.
     """
-    print(f"\n--- [Router] Analyzing Task: {state['user_task']} ---")
+    print(f"\n--- [Supervisor] Classifying Intent: {state['user_task']} ---")
     
-    # 1. Get existing skill summaries
     skill_manager = SkillManager()
     skills_summary = skill_manager.get_skill_summaries()
     skills_text = json.dumps(skills_summary, ensure_ascii=False, indent=2)
     
-    # 2. Construct Prompt
-    system_msg = SystemMessage(content=ROUTER_SYSTEM_PROMPT.format(skills_summary=skills_text))
+    system_msg = SystemMessage(content=SUPERVISOR_SYSTEM_PROMPT.format(skills_summary=skills_text))
     human_msg = HumanMessage(content=state['user_task'])
     
-    # 3. Call LLM
     llm = get_llm()
     response = llm.invoke([system_msg, human_msg])
 
     content = response.content.replace('```json', '').replace('```', '').strip()
-    # 4. Parse result
+    
     try:
         decision = json.loads(content)
+        intent = decision.get("intent")
     except Exception as e:
-        print(f"ERROR Parsing Router Output: {e}")
-        # Downgrade strategy: Default reply
-        return {**state, "route_action": "reply", "final_result": "System Error: Unable to parse routing decision."}
+        print(f"ERROR Parsing Supervisor Output: {e}")
+        return {"route_action": "reply", "final_result": "System Error: Unable to classify intent."}
 
-    action = decision.get("action")
-    print(f"--- [Router] Decision: {action.upper()} ---")
+    print(f"--- [Supervisor] Intent: {intent} ({decision.get('reasoning')}) ---")
 
-    # 5. Update state
-    updates = {}
-    
-    if action == "execute":
-        updates["route_action"] = "execute"
-        updates["target_skill"] = decision.get("target_skill")
-        updates["skill_args"] = decision.get("target_skill_args", {})
-        print(f"--- [Router] Target Skill: {updates['target_skill']} with args: {updates['skill_args']} ---")
-        
-    elif action == "create":
-        updates["route_action"] = "create"
-        # Initialize generation data
-        updates["skill_gen_data"] = {
-            "skill_name": "", # Generate later
-            "skill_description": decision.get("missing_skill_desc", "General tool"),
-            "generated_code": "",
-            "file_path": "",
-            "error_message": None
+    if intent == "reply":
+        return {
+            "route_action": "reply",
+            "final_result": decision.get("direct_reply", "I understand.")
         }
-        updates["target_skill"] = None
-        updates["skill_args"] = None
-        
-    elif action == "reply":
-        updates["route_action"] = "reply"
-        updates["final_result"] = decision.get("reply_content", "I understand.")
-        updates["target_skill"] = None
-        updates["skill_args"] = None
+    elif intent == "execute_single":
+        return {
+            "route_action": "execute",
+            "target_skill": decision.get("target_skill"),
+            "skill_args": decision.get("target_skill_args", {}),
+            "current_node_id": "single_task_node",
+            "state_gate": None
+        }
+    else: # complex_mission
+        return {"route_action": "decompose"}
+
+def router_node(state: AgentState) -> AgentState:
+    """
+    Decomposer node (formerly router): Decomposes a complex mission into a DAG.
+    """
+    print(f"\n--- [Decomposer] Analyzing Mission: {state['user_task']} ---")
     
-    # Note: LangGraph's State update uses merge logic; only return changed fields.
-    return updates
+    skill_manager = SkillManager()
+    skills_summary = skill_manager.get_skill_summaries()
+    skills_text = json.dumps(skills_summary, ensure_ascii=False, indent=2)
+    
+    system_msg = SystemMessage(content=ROUTER_SYSTEM_PROMPT.format(skills_summary=skills_text))
+    human_msg = HumanMessage(content=state['user_task'])
+    
+    llm = get_llm()
+    response = llm.invoke([system_msg, human_msg])
+
+    content = response.content.replace('```json', '').replace('```', '').strip()
+    
+    try:
+        decision = json.loads(content)
+        dag_data = decision.get("dag")
+        if not dag_data:
+            raise ValueError("No 'dag' field found in LLM response")
+            
+        dag = OrchestrationDAG(**dag_data)
+    except Exception as e:
+        print(f"ERROR Parsing Mission DAG: {e}\nContent: {content}")
+        return {
+            "route_action": "reply", 
+            "final_result": "System Error: Unable to decompose mission into a valid DAG."
+        }
+
+    print(f"--- [Decomposer] Mission Decomposed into {len(dag.nodes)} nodes ---")
+
+    return {
+        "dag": dag,
+        "completed_nodes": [],
+        "node_outputs": {},
+        "validation_results": {},
+        "route_action": "orchestrate" 
+    }

@@ -16,6 +16,8 @@ class SkillGenerationData(TypedDict):
 
 
 
+from core.definitions import OrchestrationDAG
+
 class AgentState(TypedDict):
     """
     Global state of the Agent.
@@ -26,20 +28,27 @@ class AgentState(TypedDict):
     # 2. Original task input
     user_task: str
     
-    # 3. List of currently loaded skills (summaries read from registry.json)
-    # Format: [{"name": "...", "description": "..."}]
+    # 3. List of currently loaded skills
     available_skills: List[Dict[str, str]]
     
-    # 4. Routing decision result
-    # 'execute': Existing tool, execute directly
-    # 'create': No tool, need to generate
-    route_action: str
+    # 4. Mission DAG & Orchestration State
+    dag: Optional[OrchestrationDAG]
+    completed_nodes: Annotated[List[str], operator.add]
+    node_outputs: Annotated[Dict[str, Any], operator.ior]
+    validation_results: Annotated[Dict[str, bool], operator.ior]
     
-    # New: Target skill and arguments for execution
+    # v3 Orchestration State tracking
+    current_node_id: Optional[str]
+    state_gate: Optional[str]
+    failed_nodes: Annotated[List[str], operator.add]
+    error_history: Annotated[List[str], operator.add]
+    
+    # Legacy/Transition Fields (to be migrated or used selectively)
+    route_action: str
     target_skill: Optional[str]
     skill_args: Optional[Dict[str, Any]]
     
-    # 5. Skill generation sub-state (if route_action == 'create')
+    # 5. Skill generation sub-state
     skill_gen_data: Optional[SkillGenerationData]
     
     # 6. Final execution result

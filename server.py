@@ -32,20 +32,23 @@ class ChatResponse(BaseModel):
 @api.post("/chat")
 async def chat(request: ChatRequest):
     """
-    Handle chat requests by passing them to the LangGraph agent.
+    Handle chat requests by passing them to the LangGraph mission orchestrator.
     """
     try:
         inputs = {
             "user_task": request.message,
-            "messages": [], # Messages are handled by the graph internally if needed
-            "available_skills": [], # Reloaded internally
+            "messages": [],
+            "available_skills": [],
+            "dag": None,
+            "completed_nodes": [],
+            "node_outputs": {},
+            "validation_results": {},
             "route_action": "",
             "skill_gen_data": None
         }
         
         # Run the agent graph
-        # We use a recursion limit to prevent potential loops in the graph
-        config = {"recursion_limit": 15}
+        config = {"recursion_limit": 25} # Increased for complex missions
         
         final_state = None
         for output in agent_app.stream(inputs, config):
@@ -56,9 +59,8 @@ async def chat(request: ChatRequest):
         if not final_state:
             raise HTTPException(status_code=500, detail="Agent failed to produce a response")
 
-        # Extract final result
-        # The graph structure might vary, so we look for 'final_result' in any state update
-        response_text = final_state.get("final_result", "I've processed your request.")
+        # Extract final result (usually from the last 'reply' action or direct result)
+        response_text = final_state.get("final_result", "Mission completed.")
         
         return {
             "response": response_text,
