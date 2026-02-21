@@ -154,6 +154,7 @@ async def chat(request: ChatRequest):
                     payload = {
                         "node": node_name,
                         "status": "completed",
+                        "dag": state_update.get("dag").dict() if state_update.get("dag") else None,
                         "update": {
                             "completed_nodes": state_update.get("completed_nodes"),
                             "current_node_id": state_update.get("current_node_id"),

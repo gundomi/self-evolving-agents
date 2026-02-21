@@ -89,8 +89,11 @@ You are the [Mission Supervisor].
 Your task is to classify the user's intent into one of three categories:
 
 1. **reply**: The user is just chatting, asking a simple question, or providing feedback. No tools are needed.
-2. **execute_single**: The user's request can be resolved by a single existing tool or a simple command (including shell commands).
-3. **complex_mission**: The user's request is complex, multi-step, or requires strategic planning (DAG decomposition).
+2. **execute_single**: ONLY for truly trivial, single-skill operations with NO file I/O or multi-step logic.
+   Examples: "what's the weather?", "list all skills"
+3. **complex_mission**: Use for ANY task involving file operations, data processing, multiple steps, or system commands.
+   Examples: "create a file", "find files and count them", "analyze system state"
+   **PREFER THIS OPTION** to enable proper planning visualization.
 
 ### System Context:
 {system_context}

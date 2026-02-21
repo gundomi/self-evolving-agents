@@ -18,13 +18,13 @@
                             950: '#030712',
                         },
                         accent: {
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Manrope', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
@@ -32,7 +32,7 @@
         }
     </script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -49,7 +49,7 @@
             <!-- Brand -->
             <div class="p-4 border-b border-gray-800 flex items-center gap-3">
                 <div
-                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-md">
                     <span class="text-white text-lg font-bold">🦄</span>
                 </div>
                 <div>
@@ -103,7 +103,7 @@
 
             <!-- Messages Area -->
             <div id="chat-messages"
-                class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                class="flex-1 overflow-y-auto py-6 space-y-6 scroll-smooth scrollbar-thumb-gray-700 scrollbar-track-transparent">
                 <!-- Welcome -->
                 <div class="flex gap-4 max-w-3xl mx-auto">
                     <div
@@ -128,16 +128,16 @@
             <div class="p-6">
                 <div class="max-w-3xl mx-auto relative group">
                     <div
-                        class="absolute -inset-0.5 bg-gradient-to-r from-accent-500/20 to-purple-600/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500">
+                        class="absolute -inset-0.5 bg-gradient-to-r from-accent-500/15 to-accent-600/15 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500">
                     </div>
                     <div
-                        class="relative bg-gray-900 border border-gray-700 group-focus-within:border-accent-500/50 rounded-2xl flex items-end shadow-2xl transition-all">
+                        class="relative bg-gray-900 border border-gray-700/70 group-focus-within:border-accent-500/50 rounded-2xl flex items-end shadow-xl transition-all">
                         <textarea id="user-input" rows="1" placeholder="Describe the mission objective..."
                             class="w-full bg-transparent border-none text-gray-200 placeholder-gray-600 text-sm p-4 focus:ring-0 resize-none max-h-40 font-medium"></textarea>
 
                         <div class="p-2 pb-2">
                             <button id="send-btn"
-                                class="p-2 rounded-xl bg-accent-600 hover:bg-accent-500 text-white shadow-lg transition-transform active:scale-95 flex items-center justify-center">
+                                class="p-2 rounded-xl bg-accent-600 hover:bg-accent-500 text-white shadow-md transition-transform active:scale-95 flex items-center justify-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 12h14M12 5l7 7-7 7" />
@@ -155,7 +155,11 @@
 
         <!-- COLUMN 3: Inspector (Logs) -->
         <div class="w-80 border-l border-gray-800 bg-gray-900/30 backdrop-blur-sm flex flex-col">
-            <div class="p-4 border-b border-gray-800 bg-gray-900/50">
+
+
+
+            <!-- Logs Header -->
+            <div class="p-2 px-4 border-b border-gray-800 bg-gray-900/50">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <svg class="w-4 h-4 text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -171,6 +175,46 @@
                 <div class="text-gray-600 italic">Waiting for activity...</div>
             </div>
         </div>
+
+    </div>
+
+    <!-- Strategy Modal -->
+    <dialog id="strategy-modal"
+        class="bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-2xl shadow-2xl w-[90vw] h-[80vh] p-0 text-gray-200 backdrop:bg-black/50">
+        <div class="flex flex-col h-full">
+            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                <h3 class="text-lg font-bold flex items-center gap-2 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 7m0 13V7m0 0L9 7" />
+                    </svg>
+                    Mission Strategy Map
+                </h3>
+                <button onclick="closeStrategyModal()" class="p-2 hover:bg-gray-800 rounded-lg transition-colors">
+                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex-1 overflow-auto p-6 flex items-center justify-center bg-gray-950/50">
+                <div id="strategy-graph" class="w-full h-full flex items-center justify-center">
+                    <span class="text-gray-500">No active strategy loaded.</span>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            flowchart: { curve: 'basis' },
+            securityLevel: 'loose'
+        });
+    </script>
 
     </div>
 

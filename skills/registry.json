@@ -3,7 +3,7 @@
     {
       "name": "list_all_skills",
       "description": "View the list of all available skills and tools in the current system",
-      "file_name": "system_tools.py",
+      "file_name": "skills/basics.py",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -11,201 +11,9 @@
       }
     },
     {
-      "name": "generate_random_password",
-      "description": "Generate a random password of a specified length, containing uppercase and lowercase letters, numbers, and special characters.",
-      "file_name": "skills/generated/password_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "length": {
-            "type": "integer",
-            "description": "The desired length of the password. Must be a positive integer, at least 8 for security.",
-            "minimum": 8,
-            "maximum": 128
-          }
-        },
-        "required": [
-          "length"
-        ]
-      }
-    },
-    {
-      "name": "get_current_datetime",
-      "description": "Fetch current date and time with optional timezone support",
-      "file_name": "skills/generated/datetime_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "timezone": {
-            "type": "string",
-            "description": "Optional timezone name (e.g., 'UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo'). Uses local system time if not provided.",
-            "enum": [
-              "UTC",
-              "America/New_York",
-              "America/Los_Angeles",
-              "Europe/London",
-              "Europe/Paris",
-              "Asia/Tokyo",
-              "Asia/Shanghai",
-              "Australia/Sydney",
-              "Africa/Cairo",
-              "Pacific/Auckland"
-            ]
-          }
-        },
-        "required": []
-      }
-    },
-    {
-      "name": "get_system_monitoring_data",
-      "description": "获取当前电脑上正在运行或最近使用的应用程序列表、CPU/内存占用情况、使用时长等系统监控数据",
-      "file_name": "skills/generated/system_monitoring_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "include_processes": {
-            "type": "boolean",
-            "description": "是否包含进程信息",
-            "default": true
-          },
-          "include_system_stats": {
-            "type": "boolean",
-            "description": "是否包含系统统计信息（CPU、内存、磁盘）",
-            "default": true
-          },
-          "include_recent_apps": {
-            "type": "boolean",
-            "description": "是否包含最近使用的应用程序",
-            "default": true
-          },
-          "process_limit": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "description": "进程数量限制，null表示无限制",
-            "default": 20
-          },
-          "recent_hours": {
-            "type": "integer",
-            "description": "最近使用应用程序的时间范围（小时）",
-            "default": 24,
-            "minimum": 1,
-            "maximum": 168
-          }
-        },
-        "required": []
-      }
-    },
-    {
-      "name": "launch_application",
-      "description": "Launch or open specified applications by name or path, handling the startup process",
-      "file_name": "skills/generated/application_launcher.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "application_name": {
-            "type": "string",
-            "description": "Name of the application to launch (e.g., 'pycharm', 'notepad', 'chrome')"
-          },
-          "application_path": {
-            "type": "string",
-            "description": "Full path to the application executable file"
-          },
-          "arguments": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of command line arguments to pass to the application"
-          },
-          "working_directory": {
-            "type": "string",
-            "description": "Working directory for the launched application"
-          },
-          "wait_for_completion": {
-            "type": "boolean",
-            "description": "Whether to wait for the application to exit before returning",
-            "default": false
-          }
-        },
-        "required": []
-      }
-    },
-    {
-      "name": "log_cpu_alert",
-      "description": "Monitor CPU usage and log success message to cpu_alert.log if usage exceeds threshold",
-      "file_name": "skills/generated/cpu_monitor_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "threshold": {
-            "type": "number",
-            "description": "CPU usage percentage threshold (default: 10.0)",
-            "default": 10.0
-          },
-          "log_file": {
-            "type": "string",
-            "description": "Path to the log file (default: 'cpu_alert.log')",
-            "default": "cpu_alert.log"
-          }
-        },
-        "required": []
-      }
-    },
-    {
-      "name": "check_cpu_usage",
-      "description": "Check if current CPU usage exceeds a specified threshold percentage",
-      "file_name": "skills/generated/system_monitor_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "threshold": {
-            "type": "number",
-            "description": "CPU usage percentage threshold (default: 10.0)",
-            "minimum": 0.1,
-            "maximum": 100.0
-          },
-          "interval": {
-            "type": "number",
-            "description": "Time interval in seconds for CPU measurement (default: 1.0)",
-            "minimum": 0.1,
-            "maximum": 10.0
-          }
-        },
-        "required": []
-      }
-    },
-    {
-      "name": "get_current_weather",
-      "description": "Fetch current weather data for a specified location using OpenWeatherMap API. Now supports optional API key parameter with environment variable fallback.",
-      "file_name": "skills/generated/weather_tools.py",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "City name and optional country code (e.g., 'London,UK' or 'New York')"
-          },
-          "api_key": {
-            "type": "string",
-            "description": "OpenWeatherMap API key (optional, defaults to OPENWEATHER_API_KEY environment variable)"
-          },
-          "units": {
-            "type": "string",
-            "description": "Temperature units - 'metric' (Celsius), 'imperial' (Fahrenheit), or 'standard' (Kelvin)",
-            "default": "metric"
-          }
-        },
-        "required": [
-          "location"
-        ]
-      }
-    },
-    {
       "name": "run_shell_command",
-      "description": "Execute a shell command and return its output (stdout and stderr). Use this for system operations like git, ls, or checking service status. Automatically handles sudo privileges when password is available.",
-      "file_name": "skills/generated/system_tools.py",
+      "description": "Execute a shell command and return its output (stdout and stderr). Use this for system operations like git, ls, or checking service status.",
+      "file_name": "skills/basics.py",
       "parameters": {
         "type": "object",
         "properties": {
@@ -222,6 +30,159 @@
         "required": [
           "command"
         ]
+      }
+    },
+    {
+      "name": "launch_application",
+      "description": "Launch or open specified applications by name or path.",
+      "file_name": "skills/basics.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application_name": {
+            "type": "string",
+            "description": "Name of the application to launch"
+          },
+          "application_path": {
+            "type": "string",
+            "description": "Full path to the application executable file"
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of command line arguments"
+          },
+          "wait_for_completion": {
+            "type": "boolean",
+            "description": "Whether to wait for the application to exit",
+            "default": false
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "get_current_weather",
+      "description": "Fetch current weather data for a specified location.",
+      "file_name": "skills/basics.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name and optional country code"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "API key"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    },
+    {
+      "name": "configure_autogen_deepseek",
+      "description": "Configure AutoGen with DeepSeek model for multi-agent conversations. This function sets up an assistant agent and user proxy agent with DeepSeek API integration.",
+      "file_name": "skills/generated/autogen_deepseek_config.py",
+      "parameters": {
+        "api_key": {
+          "type": "string",
+          "description": "DeepSeek API key",
+          "required": true
+        },
+        "model_name": {
+          "type": "string",
+          "description": "DeepSeek model name",
+          "default": "deepseek-chat",
+          "required": false
+        },
+        "base_url": {
+          "type": "string",
+          "description": "API base URL",
+          "default": "https://api.deepseek.com",
+          "required": false
+        },
+        "temperature": {
+          "type": "number",
+          "description": "Sampling temperature (0.0 to 2.0)",
+          "default": 0.7,
+          "required": false
+        },
+        "max_tokens": {
+          "type": "integer",
+          "description": "Maximum tokens to generate",
+          "required": false
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Request timeout in seconds",
+          "default": 120,
+          "required": false
+        },
+        "system_message": {
+          "type": "string",
+          "description": "System message for the assistant",
+          "default": "You are a helpful AI assistant.",
+          "required": false
+        },
+        "work_dir": {
+          "type": "string",
+          "description": "Working directory for file operations",
+          "default": "./autogen_work",
+          "required": false
+        },
+        "max_consecutive_auto_reply": {
+          "type": "integer",
+          "description": "Maximum consecutive auto-replies",
+          "default": 10,
+          "required": false
+        },
+        "human_input_mode": {
+          "type": "string",
+          "description": "Human input mode (ALWAYS, NEVER, TERMINATE)",
+          "default": "NEVER",
+          "required": false
+        },
+        "code_execution_config": {
+          "type": "object",
+          "description": "Code execution configuration",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "monitor_system_resources",
+      "description": "Monitor system CPU, memory, disk, and network usage",
+      "file_name": "skills/generated/resource_monitor.py",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "description": "Time interval between measurements in seconds",
+            "default": 1.0
+          },
+          "duration": {
+            "type": "number",
+            "description": "Total monitoring duration in seconds. If not provided, returns single measurement",
+            "nullable": true
+          },
+          "include_disk": {
+            "type": "boolean",
+            "description": "Whether to include disk usage statistics",
+            "default": true
+          },
+          "include_network": {
+            "type": "boolean",
+            "description": "Whether to include network statistics",
+            "default": true
+          }
+        },
+        "required": []
       }
     }
   ]
