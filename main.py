@@ -174,7 +174,10 @@ if __name__ == "__main__":
         "route_action": "",
         "skill_gen_data": None,
         "current_node_id": None,
-        "state_gate": None
+        "state_gate": None,
+        "retry_count": 0,
+        "strategic_analysis": None,
+        "injected_instructions": None
     }
     
     for output in app.stream(inputs, {"recursion_limit": 50}):

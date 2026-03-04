@@ -19,12 +19,15 @@ class MCPClient:
         self.sessions = {} # {name: ClientSession}
 
     def _init_default_servers(self):
-        # Example: connecting to a theoretical 'mcp-git' or local tools
-        # For this PoC, we might not have external servers running yet, 
-        # but we structure it to allow adding them easily.
-        # We check if 'mcp-server-git' or similar is in PATH? 
-        # For simplicity, we will start with an empty set, but provide a method to add.
-        pass
+        # v3: Load servers from config.yaml
+        from core.config_loader import settings
+        mcp_servers = settings.get("mcp.servers", [])
+        for server in mcp_servers:
+            self.servers[server['name']] = {
+                "command": server['command'],
+                "args": server['args'],
+                "env": server.get('env')
+            }
 
     async def connect_to_server(self, name: str, command: str, args: List[str], env: Optional[Dict] = None):
         """

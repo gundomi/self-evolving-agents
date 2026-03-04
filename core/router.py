@@ -1,5 +1,6 @@
 # core/router.py
 import json
+import re
 from langchain_core.messages import SystemMessage, HumanMessage
 from core.state import AgentState
 from core.engine import get_llm
@@ -8,6 +9,22 @@ from agents.prompts import ROUTER_SYSTEM_PROMPT, SUPERVISOR_SYSTEM_PROMPT
 from core.definitions import OrchestrationDAG
 from core.system_info import get_system_context
 from core.memory import VectorMemory
+
+def extract_json(text: str) -> str:
+    """
+    Extracts the first JSON block found in a string.
+    Handles text before/after and markdown code blocks.
+    """
+    # Remove markdown code blocks if present
+    text = re.sub(r'```(?:json)?\s*(.*?)\s*```', r'\1', text, flags=re.DOTALL)
+    
+    # Find the first { and the last }
+    start = text.find('{')
+    end = text.rfind('}')
+    
+    if start != -1 and end != -1 and end > start:
+        return text[start:end+1].strip()
+    return text.strip()
 
 def supervisor_node(state: AgentState) -> AgentState:
     """
@@ -38,7 +55,7 @@ def supervisor_node(state: AgentState) -> AgentState:
     llm = get_llm()
     response = llm.invoke([system_msg, human_msg])
 
-    content = response.content.replace('```json', '').replace('```', '').strip()
+    content = extract_json(response.content)
     
     try:
         decision = json.loads(content)
@@ -84,17 +101,22 @@ def router_node(state: AgentState) -> AgentState:
     retrieved = vector_memory.retrieve_relevant(state['user_task'])
     rag_str = json.dumps(retrieved, indent=2) if retrieved else "No relevant history found."
 
+    # Get Strategic Guidance if available
+    strategic_guidance = ""
+    if state.get("injected_instructions"):
+        strategic_guidance = f"\n### STRATEGIC PIVOT GUIDANCE:\n{state['injected_instructions']}\n"
+
     system_msg = SystemMessage(content=ROUTER_SYSTEM_PROMPT.format(
         skills_summary=skills_text,
         system_context=sys_str,
         retrieved_context=rag_str
-    ))
+    ) + strategic_guidance)
     human_msg = HumanMessage(content=state['user_task'])
     
     llm = get_llm()
     response = llm.invoke([system_msg, human_msg])
 
-    content = response.content.replace('```json', '').replace('```', '').strip()
+    content = extract_json(response.content)
     
     try:
         decision = json.loads(content)

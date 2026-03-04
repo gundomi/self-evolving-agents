@@ -3,9 +3,11 @@ import json
 import os
 from typing import List, Dict
 
+from core.config_loader import settings
+
 class SkillManager:
-    def __init__(self, registry_path: str = "skills/registry.json"):
-        self.registry_path = registry_path
+    def __init__(self, registry_path: str = None):
+        self.registry_path = registry_path or settings.get("skills.registry_path", "skills/registry.json")
         self._ensure_registry()
 
     def _ensure_registry(self):

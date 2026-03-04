@@ -10,6 +10,9 @@ A modular, self-evolving agent framework built with LangGraph. This system is de
 - **Multi-Provider Support**: Compatible with Google Gemini, OpenAI, and DeepSeek.
 - **Strict Schema Enforcement**: Uses Pydantic and JSON Schema to ensure generated tools are compatible with the routing system.
 
+> [!TIP]
+> For a deep dive into the system's architecture, hot-reloading, and self-evolution mechanics, see the [Detailed Documentation](file:///home/j-harvey/Desktop/ankur/Projects/self-evolving-agents/DOCUMENTATION.md).
+
 ## 🏗 Architecture
 
 The system follows a cyclic graph architecture implemented via **LangGraph**:

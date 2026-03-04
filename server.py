@@ -120,7 +120,10 @@ async def chat(request: ChatRequest):
             "route_action": "",
             "skill_gen_data": None,
             "current_node_id": None,
-            "state_gate": None
+            "state_gate": None,
+            "retry_count": 0,
+            "strategic_analysis": None,
+            "injected_instructions": None
         }
         
         config = {"recursion_limit": 50}
@@ -128,14 +131,18 @@ async def chat(request: ChatRequest):
         final_dag = None
 
         try:
-            # We use stream to get granular updates from LangGraph
-            for output in agent_app.stream(inputs, config):
+            # We use astream to get granular updates from LangGraph without blocking
+            async for output in agent_app.astream(inputs, config):
+                # Keep-alive heartbeat (SSE comment)
+                yield f": keep-alive\n\n"
+
                 for node_name, state_update in output.items():
                     route_action = state_update.get("route_action")
                     
                     # Capture DAG if available (from decomposer)
-                    if state_update.get("dag"):
-                        final_dag = state_update.get("dag")
+                    dag_obj = state_update.get("dag")
+                    if dag_obj:
+                        final_dag = dag_obj
 
                     # Handle Input Request (Sudo Auth)
                     if route_action == "ask_user":
@@ -151,10 +158,18 @@ async def chat(request: ChatRequest):
                         return 
 
                     # Format as SSE
+                    # Ensure dag is serialized correctly
+                    dag_data = None
+                    if dag_obj:
+                        try:
+                            dag_data = dag_obj.model_dump() if hasattr(dag_obj, "model_dump") else dag_obj.dict()
+                        except Exception as de:
+                            print(f"DAG Serialization Error: {de}")
+
                     payload = {
                         "node": node_name,
                         "status": "completed",
-                        "dag": state_update.get("dag").dict() if state_update.get("dag") else None,
+                        "dag": dag_data,
                         "update": {
                             "completed_nodes": state_update.get("completed_nodes"),
                             "current_node_id": state_update.get("current_node_id"),
@@ -169,20 +184,19 @@ async def chat(request: ChatRequest):
                         payload["response"] = final_response
                     
                     yield f"data: {json.dumps(payload)}\n\n"
-                    await asyncio.sleep(0.1) # Small delay for smoother UI
+                    await asyncio.sleep(0.05) 
             
             # End of stream logic
             if final_response:
-                # Save Assistant response to Session
                 session_manager.add_message(session_id, "system", final_response)
-                
-                # Save to Vector Memory (Topology & Result)
-                # We embed the user intent + the resulting DAG structure + the outcome
                 dag_json = final_dag.json() if final_dag else "{}"
                 vector_memory.add_interaction(session_id, request.message, dag_json, final_response)
 
         except Exception as e:
-            error_payload = {"status": "error", "message": str(e)}
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"CRITICAL STREAM ERROR: {error_trace}")
+            error_payload = {"status": "error", "message": str(e), "trace": error_trace}
             yield f"data: {json.dumps(error_payload)}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

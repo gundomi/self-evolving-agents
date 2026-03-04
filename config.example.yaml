@@ -8,3 +8,16 @@ paths:
   skills_dir: "skills"
   generated_skills_dir: "skills/generated"
   checkpoint_db: "storage/checkpointer.db"
+
+skills:
+  registry_path: "skills/registry.json"
+  generated_dir: "skills/generated"
+
+mcp:
+  servers:
+    - name: "mcp-git"
+      command: "mcp-server-git"
+      args: ["................../Projects/self-evolving-agents"]
+
+orchestration:
+  max_retries: 3

@@ -184,6 +184,33 @@
         },
         "required": []
       }
+    },
+    {
+      "name": "generate_n8n_workflow",
+      "description": "Generate a sample n8n workflow for webhook to Discord notification. The function can generate both generic templates (when no Discord webhook URL is provided) and configured workflows (when a valid Discord webhook URL is provided).",
+      "file_name": "skills/generated/n8n_workflow_tools.py",
+      "parameters": {
+        "discord_webhook_url": {
+          "type": "string",
+          "description": "Discord webhook URL to send notifications to. If not provided, a generic workflow template will be generated with placeholder.",
+          "required": false
+        },
+        "workflow_name": {
+          "type": "string",
+          "description": "Name for the workflow (default: 'Webhook to Discord')",
+          "required": false
+        },
+        "webhook_path": {
+          "type": "string",
+          "description": "Path for the webhook (default: 'webhook')",
+          "required": false
+        },
+        "notification_message": {
+          "type": "string",
+          "description": "Message template for Discord (default: 'New webhook received at {{$json.timestamp}}')",
+          "required": false
+        }
+      }
     }
   ]
 }

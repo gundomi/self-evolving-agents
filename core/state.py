@@ -54,3 +54,10 @@ class AgentState(TypedDict):
     
     # 6. Final execution result
     final_result: Optional[str]
+
+    # 7. Retry tracking
+    retry_count: Annotated[int, operator.add]
+
+    # 8. Meta-Cognition & Strategic Evolution
+    strategic_analysis: Optional[Dict[str, Any]]
+    injected_instructions: Optional[str]

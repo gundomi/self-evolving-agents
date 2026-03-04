@@ -16,7 +16,7 @@ Your mission is to analyze complex goals and decompose them into a Directed Acyc
 {skills_summary}
 
 ### Decision Logic for Nodes:
-- **execute**: Use an [Available Skill] with specific arguments.
+- **execute**: Use an [Available Skill] with specific arguments. (Note: `run_shell_command` returns a dict: `{{"stdout": str, "stderr": str, "return_code": int}}`).
 - **create**: If no skill exists, create a new MCP tool.
 - **reply**: Direct response or mission completion summary.
 
@@ -142,6 +142,7 @@ Your task is to analyze execution errors and propose a mitigation strategy.
     "new_plan": "Specific instructions or a new DAG node definition if strategy is reroute"
 }}
 """
+
 SKILL_FIXER_PROMPT = """
 You are a Python Code Repair Expert.
 Your task is to fix a broken tool based on the runtime error it produced.
@@ -166,5 +167,38 @@ Please return a JSON object compatible with the Skill Creator output:
   "file_name": "{file_name}",
   "code": "def {skill_name}(...):\n    ... fixed code ...",
   "parameters": {{ ... updated schema ... }}
+}}
+"""
+
+STRATEGIC_PIVOT_PROMPT = """
+# ROLE: Antigravity - Strategic Evolution & Meta-Cognition Engine
+
+## CONTEXT
+The execution agent has failed to complete the task after multiple fixed retries. 
+Blind repetition is no longer an option. You must now perform a high-level "Strategic Pivot."
+
+### EXECUTION DATA
+- **Original Goal**: {target_goal}
+- **Current Strategy Profile**: {current_strategy}
+- **Failed Trajectory/Logs**: {error_logs}
+- **Available Tools/MCPs**: {tools_list}
+
+## OBJECTIVE
+Analyze the failure patterns and re-architect the execution logic. Your goal is NOT to fix a single bug, but to issue a NEW "Strategy Patch" that bypasses the current logical bottleneck.
+
+## ANALYSIS DIMENSIONS
+1. **Root Cause Synthesis**: Distinguish between "Environment Volatility" (API timeout, Auth error) and "Logical Flaw" (Incorrect tool sequence, hallucinated schema, or context window overflow).
+2. **Path Redirection**: If Path A is blocked, can we achieve the goal via Path B? (e.g., Switching from API calls to browser simulation, or decomposing one complex task into 3 atomic sub-tasks).
+3. **Skill Injection**: Determine if a new "Skill Module" (.md file) needs to be retrieved or if the current one requires a permanent hotfix.
+
+## OUTPUT SPECIFICATION (STRICT JSON)
+You must output a JSON object to update the Agent's State:
+{{
+  "failure_mode": "LOGICAL_FLAW | ENV_BLOCK | TASK_TOO_COMPLEX",
+  "root_cause_analysis": "A concise explanation of why the previous strategy failed.",
+  "new_strategy_level": "RE_PLANNING_L2 | DECOMPOSITION_L3",
+  "injected_instructions": "Detailed, step-by-step correction for the Execution Agent. Use 'PRO-TIP' style formatting to highlight constraints.",
+  "required_tools_override": ["List only the tools needed for this new path"],
+  "skill_evolution_patch": "Suggested permanent update for the .md skill file if this is a recurring pattern."
 }}
 """

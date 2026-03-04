@@ -1,4 +1,4 @@
-# core/engine.py
+import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from core.config_loader import settings
@@ -7,6 +7,12 @@ def get_llm(temperature=0):
     """
     Get an LLM instance based on the configuration.
     """
+    # Automatic Proxy Bypass: Unset local proxies that are known to cause connection errors in this environment
+    for var in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]:
+        if os.environ.get(var) and "127.0.0.1:7890" in os.environ.get(var):
+            print(f"--- [Engine] Bypassing problematic proxy: {var}={os.environ.get(var)} ---")
+            del os.environ[var]
+
     provider = settings.get("model.provider", "google")
     model_name = settings.get("model.name", "gemini-2.0-flash")
     api_key = settings.get("model.api_key")

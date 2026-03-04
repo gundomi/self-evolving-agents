@@ -8,7 +8,7 @@ from typing import Optional, List, Dict, Union
 
 # --- System Tools ---
 
-def run_shell_command(command: str):
+def run_shell_command(command: str, timeout: int = 300):
     """
     Execute a shell command and return its output (stdout and stderr).
     Use this for system operations like git, ls, or checking service status.
@@ -38,13 +38,25 @@ def run_shell_command(command: str):
              command = command.replace("sudo", "sudo -S -p ''", 1)
              input_data = f"{sudo_pwd}\n"
 
+        # v3: Robust conda support - if command involves conda activation, try to source conda.sh
+        if "conda activate" in command:
+            conda_sh = os.path.expanduser("~/anaconda3/etc/profile.d/conda.sh")
+            if os.path.exists(conda_sh):
+                command = f"source {conda_sh} && {command}"
+            else:
+                # Fallback for miniconda
+                conda_sh_mini = os.path.expanduser("~/miniconda3/etc/profile.d/conda.sh")
+                if os.path.exists(conda_sh_mini):
+                    command = f"source {conda_sh_mini} && {command}"
+
         result = subprocess.run(
             command, 
             shell=True, 
+            executable="/bin/bash", # Use bash to support 'source'
             capture_output=True, 
             text=True, 
             input=input_data,
-            timeout=30 
+            timeout=timeout 
         )
         
         output = {
@@ -135,3 +147,51 @@ def get_current_weather(location: str, api_key: str = None):
         return res.json()
     except Exception as e:
         return {"error": f"Weather API check failed: {str(e)}"}
+def install_local_skill(file_path: str):
+    """
+    Import and register an existing Python tool file as a skill.
+    The file must contain one or more functions with docstrings.
+    """
+    from core.updater import load_dynamic_module
+    from skills.manager import SkillManager
+    import inspect
+    
+    if not os.path.exists(file_path):
+        return {"error": f"File not found: {file_path}"}
+        
+    try:
+        module_name = f"skills.imported.{os.path.basename(file_path).replace('.py', '')}"
+        module = load_dynamic_module(file_path, module_name)
+        
+        manager = SkillManager()
+        count = 0
+        
+        for name, obj in inspect.getmembers(module):
+            if inspect.isfunction(obj) and obj.__module__ == module_name:
+                # Basic registration
+                new_skill_entry = {
+                    "name": name,
+                    "description": obj.__doc__.strip() if obj.__doc__ else "No description provided",
+                    "file_name": file_path,
+                    "parameters": {} # Parameters would ideally be parsed here, but for PoC we keep it simple
+                }
+                manager.register_new_skill(new_skill_entry)
+                count += 1
+                
+        return {"success": True, "message": f"Successfully registered {count} skills from {file_path}"}
+    except Exception as e:
+        return {"error": f"Failed to install skill: {str(e)}"}
+
+def integrate_mcp_server(name: str, command: str, args: List[str]):
+    """
+    Connect to an MCP server, fetch its tools, and register them.
+    Also adds the server to config.yaml if possible.
+    """
+    from skills.manager import SkillManager
+    manager = SkillManager()
+    
+    try:
+        manager.sync_mcp_server(name, command, args)
+        return {"success": True, "message": f"Successfully integrated MCP server: {name}"}
+    except Exception as e:
+        return {"error": f"Failed to integrate MCP server: {str(e)}"}

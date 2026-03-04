@@ -1,5 +1,6 @@
 # core/orchestrator.py
 import asyncio
+from types import SimpleNamespace
 from typing import List, Dict, Any, Optional
 from core.state import AgentState
 from core.definitions import DAGNode
@@ -31,9 +32,9 @@ def orchestrator_node(state: AgentState) -> AgentState:
         if node.id in completed or node.id in failed:
             continue
         
-        # Check if all dependencies are in the 'completed' list
-        if all(dep in completed for dep in node.dependencies):
-            # If a dependency failed, we go to repair instead of immediate deadlock
+        # Check if all dependencies are processed (either completed or failed)
+        if all(dep in completed or dep in failed for dep in node.dependencies):
+            # If any dependency failed, we go to repair
             if any(dep in failed for dep in node.dependencies):
                  print(f"--- [Orchestrator] Dependency failed for {node.id}. Triggering repair... ---")
                  return {"route_action": "repair"}
@@ -82,8 +83,16 @@ def state_gate_validator(result: Any, gate_expression: Optional[str]) -> bool:
         return True
     
     try:
-        context = {"result": result}
-        return eval(gate_expression, {}, context)
+        # Provide both dict and namespace access
+        context = {"result": result, "data": result, "res": result}
+        if isinstance(result, dict):
+            context["res"] = SimpleNamespace(**result)
+            # Expose top-level keys for convenience (e.g., stdout, stderr)
+            for k, v in result.items():
+                if k not in context:
+                    context[k] = v
+        
+        return eval(gate_expression, {"__builtins__": __builtins__}, context)
     except Exception as e:
         print(f"State Gate Validation Error: {e}")
         return False

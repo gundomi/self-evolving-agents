@@ -21,8 +21,53 @@ def fixer_node(state: AgentState) -> AgentState:
     
     print(f"\n--- [Fixer] Analyzing Failure in Node: {node_id} ---")
     
-    # 1. Prepare Skills Summary
     manager = SkillManager()
+
+    # Check Retry Threshold first
+    from core.config_loader import settings
+    max_retries = settings.get("orchestration.max_retries", 3)
+    current_retries = state.get("retry_count", 0)
+    
+    if current_retries >= max_retries:
+        print(f"--- [Fixer] MAX RETRIES REACHED ({max_retries}). Triggering STRATEGIC PIVOT... ---")
+        
+        from agents.prompts import STRATEGIC_PIVOT_PROMPT
+        
+        # Gather context for strategic analysis
+        dag = state.get("dag")
+        strategy_summary = "Single task execution"
+        if dag:
+            strategy_summary = f"DAG with {len(dag.nodes)} nodes: " + ", ".join([f"{n.id}({n.task})" for n in dag.nodes])
+        
+        pivot_prompt = STRATEGIC_PIVOT_PROMPT.format(
+            target_goal=state.get("user_task"),
+            current_strategy=strategy_summary,
+            error_logs="\n".join(errors[-3:]), # Last 3 errors for context
+            tools_list=manager.get_skill_summaries()
+        )
+        
+        llm = get_llm(temperature=0)
+        pivot_response = llm.invoke([HumanMessage(content=pivot_prompt)])
+        
+        from core.router import extract_json
+        try:
+            pivot_data = json.loads(extract_json(pivot_response.content))
+            print(f"--- [Fixer] Strategic Pivot Analysis: {pivot_data.get('failure_mode')} ---")
+            
+            return {
+                "route_action": "decompose", # Route back to planner
+                "strategic_analysis": pivot_data,
+                "injected_instructions": pivot_data.get("injected_instructions"),
+                "retry_count": -state.get("retry_count", 0), # Reset retry count (operator.add)
+                "error_history": [f"Strategic Pivot Triggered: {pivot_data.get('root_cause_analysis')}"]
+            }
+        except Exception as e:
+            print(f"--- [Fixer] Strategic Pivot Analysis Failed: {e} ---")
+            return {"route_action": "reply", "final_result": f"Mission Aborted: Strategic Pivot failed and max retries reached. Error: {e}"}
+
+    print(f"--- [Fixer] Status: Retry {current_retries + 1}/{max_retries} ---")
+    
+    # 1. Prepare Skills Summary
     skills_summary = manager.get_skill_summaries()
     
     # 2. Call LLM for diagnosis
@@ -53,22 +98,21 @@ def fixer_node(state: AgentState) -> AgentState:
                 print("--- [Fixer] SUDO: Password available. Retrying with sudo... ---")
                 return {
                     "route_action": "orchestrate",
-                    "error_history": ["Permission Denied. Retrying with sudo privileges."]
+                    "error_history": ["Permission Denied. Retrying with sudo privileges."],
+                    "retry_count": 1
                 }
             else:
                 print("--- [Fixer] SUDO: Permission denied and no password. Requesting input... ---")
                 return {
                     "route_action": "ask_user",
-                    "error_history": ["Permission Denied. Requesting sudo password from user."]
+                    "error_history": ["Permission Denied. Requesting sudo password from user."],
+                    "retry_count": 1
                 }
             
         elif decision.get("strategy") == "retrain":
             print("--- [Fixer] Strategy: RETRAIN. Preparing to patch skill code... ---")
             
             # 1. Identify the failed skill
-            # We need to access state to find which skill failed
-            # In executor_node, we set failed_nodes, but we don't strictly store the skill name in state globally
-            # But the node definition in DAG has it.
             dag = state.get("dag")
             target_skill = None
             if dag:
@@ -77,10 +121,7 @@ def fixer_node(state: AgentState) -> AgentState:
                         target_skill = node.target_skill
                         break
             
-            # Fallback if DAG is missing (single_task)
             if not target_skill:
-                # supervisor set target_skill in state for single execution?
-                # orchestrator sets 'target_skill' in updates, so it might be in state
                 target_skill = state.get("target_skill")
 
             if not target_skill:
@@ -117,6 +158,7 @@ def fixer_node(state: AgentState) -> AgentState:
                 # 4. Route to Updater
                 return {
                     "route_action": "update",
+                    "retry_count": 1,
                     "skill_gen_data": {
                         "skill_name": fix_data["name"],
                         "skill_description": fix_data.get("description", "Patched by Fixer"),
@@ -130,7 +172,7 @@ def fixer_node(state: AgentState) -> AgentState:
                  print(f"--- [Fixer] Code generation failed: {e} ---")
                  return {"route_action": "reply", "final_result": f"Fixer failed to generate patch: {e}"}
 
-        return {"route_action": "orchestrate"} # Default to retry/next node
+        return {"route_action": "orchestrate", "retry_count": 1}
         
     except Exception as e:
         print(f"--- [Fixer] Error parsing diagnosis: {e} ---")
