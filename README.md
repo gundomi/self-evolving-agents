@@ -101,5 +101,9 @@ The `Updater` node uses `importlib.util` to load newly created files as modules.
 ### Self-Reflective Loop
 If a generated tool fails to load or has syntax errors, the system is designed to catch the exception and route back to the `Creator` for a fix (loop closure).
 
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](file:///home/j-harvey/Desktop/ankur/Projects/self-evolving-agents/LICENSE) file for details.
+
 ---
 *Created with ❤️ for Advanced Agentic Coding.*
